@@ -12,23 +12,26 @@ def main_page():
 
 @app.route('/piglatinize/', methods=['POST'])
 def pig_latinizer():
-    original_text = request.form['input_text']
-    original_text = original_text.split(' ')
-    new_text = []
-    for word in original_text:
-        word = word[1:] + word[0] + 'ay'
-        new_text.append(word)
-    new_text = ' '.join(new_text)
+    try:
+        original_text = request.form['input_text']
+        original_text = original_text.split(' ')
+        new_text = []
+        for word in original_text:
+            word = word[1:] + word[0] + 'ay'
+            new_text.append(word)
+        new_text = ' '.join(new_text)
 
-    # Create the database (Heroku will automatically delete it later, which is convenient)
-    db.connect()
-    db.create_tables([ConvertedStrings])
-    # Create a unique code for this conversion
-    code = base64.b32encode(os.urandom(8)).decode().strip("=").lower()
-    new_record = ConvertedStrings(value=new_text, code=code)
-    new_record.save()
-    db.close()
-    return redirect(url_for('retrieve_conversion', code=code))
+        # Create the database (Heroku will automatically delete it later, which is convenient)
+        db.connect()
+        db.create_tables([ConvertedStrings])
+        # Create a unique code for this conversion
+        code = base64.b32encode(os.urandom(8)).decode().strip("=").lower()
+        new_record = ConvertedStrings(value=new_text, code=code)
+        new_record.save()
+        db.close()
+        return redirect(url_for('retrieve_conversion', code=code))
+    except IndexError:
+        return redirect(url_for('main_page'))
 
 @app.route('/esultray/<code>/')
 def retrieve_conversion(code):
